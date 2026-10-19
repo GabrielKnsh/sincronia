@@ -56,8 +56,11 @@ def test_premiere_xml(shoot, tmp_path):
     audio_tracks = seq.findall("media/audio/track")
     # CameraA (2 clipes em sequência) e CameraB (B001 e B002 não se sobrepõem)
     assert len(video_tracks) == 2
-    # gravador + áudio de cada trilha de câmera
-    assert len(audio_tracks) == 3
+    # gravador mono (1 trilha) + áudio estéreo de cada trilha de câmera (2 trilhas cada)
+    assert [t.get("premiereTrackType") for t in audio_tracks] == ["Mono"] + ["Stereo"] * 4
+    assert [t.get("currentExplodedTrackIndex") for t in audio_tracks] == ["0", "0", "1", "0", "1"]
+    a001 = [ci for t in audio_tracks for ci in t.findall("clipitem") if ci.findtext("name") == "A001.mp4"]
+    assert [ci.findtext("sourcetrack/trackindex") for ci in a001] == ["1", "2"]
 
     names_v1 = [ci.findtext("name") for ci in video_tracks[0].findall("clipitem")]
     assert names_v1 == ["A001.mp4", "A002.mp4"]
